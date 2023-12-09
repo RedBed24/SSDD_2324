@@ -1,4 +1,5 @@
 """Module for servants implementations."""
+import os
 
 import Ice
 
@@ -17,6 +18,11 @@ class DataTransfer(IceDrive.DataTransfer):
 
 class BlobService(IceDrive.BlobService):
     """Implementation of an IceDrive.BlobService interface."""
+    def __init__(self, blob_directory: str):
+        self.blob_directory = blob_directory
+        os.makedirs(self.blob_directory, exist_ok=True)
+
+        self.blobs = os.listdir(self.blob_directory)
 
     def link(self, blob_id: str, current: Ice.Current = None) -> None:
         """Mark a blob_id file as linked in some directory."""
