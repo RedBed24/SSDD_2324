@@ -12,7 +12,7 @@ def test_all_blobs_are_linked():
     blobs_directory = CONFIG["Blobs"]["blobs_directory"]
     links_directory = CONFIG["Blobs"]["links_directory"]
 
-    if not os.path.exists(blobs_directory) and not os.path.exists(links_directory):
+    if not os.path.exists(blobs_directory) or not os.path.exists(links_directory):
         pytest.skip("Directories do not exist")
 
     blobs = os.listdir(blobs_directory)

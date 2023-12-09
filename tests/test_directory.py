@@ -25,8 +25,8 @@ def test_directory_inst_altered():
     """Test if the directory doesn't change if it already exists.
     It should not change because it should not be created again nor add or remove files."""
 
-    os.makedirs(MOCK_BLOBS_DIRECTORY)
-    os.makedirs(MOCK_LINKS_DIRECTORY)
+    os.makedirs(MOCK_BLOBS_DIRECTORY, exist_ok=True)
+    os.makedirs(MOCK_LINKS_DIRECTORY, exist_ok=True)
 
     blob_last_mod = os.path.getmtime(MOCK_BLOBS_DIRECTORY)
     link_last_mod = os.path.getmtime(MOCK_LINKS_DIRECTORY)
@@ -45,4 +45,9 @@ def test_same_directory():
 
     with pytest.raises(ValueError):
         BlobService(dir, dir, 1)
+
+
+def test_invalid_data_transfer_size():
+    with pytest.raises(ValueError):
+        BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 0)
 
