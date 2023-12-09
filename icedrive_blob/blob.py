@@ -64,6 +64,8 @@ class BlobService(IceDrive.BlobService):
         """Mark a blob_id as unlinked (removed) from some directory."""
         try:
             self.blobs[blob_id] -= 1
+            with open(os.path.join(self.links_directory, blob_id), "w") as f:
+                f.write(str(self.blobs[blob_id]))
             if self.blobs[blob_id] < 1:
                 os.remove(os.path.join(self.blobs_directory, blob_id))
                 os.remove(os.path.join(self.links_directory, blob_id))
