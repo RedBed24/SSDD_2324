@@ -29,10 +29,10 @@ def test_directory_inst_altered():
     It should not change because it should not be created again nor add or remove files."""
 
     os.makedirs(MOCK_BLOBS_DIRECTORY)
-    os.makedirs(MOCK_BLOBS_DIRECTORY)
+    os.makedirs(MOCK_LINKS_DIRECTORY)
 
     blob_last_mod = os.path.getmtime(MOCK_BLOBS_DIRECTORY)
-    link_last_mod = os.path.getmtime(MOCK_BLOBS_DIRECTORY)
+    link_last_mod = os.path.getmtime(MOCK_LINKS_DIRECTORY)
 
     BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1)
 
