@@ -30,6 +30,9 @@ class BlobService(IceDrive.BlobService):
         if blobs_directory == links_directory:
             raise ValueError("blob_directory and links_directory must be different")
 
+        if data_transfer_size <= 0:
+            raise ValueError("data_transfer_size must be greater than 0")
+
         self.blobs_directory = blobs_directory
         self.links_directory = links_directory
 
