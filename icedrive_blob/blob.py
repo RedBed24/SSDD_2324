@@ -18,11 +18,21 @@ class DataTransfer(IceDrive.DataTransfer):
 
 class BlobService(IceDrive.BlobService):
     """Implementation of an IceDrive.BlobService interface."""
-    def __init__(self, blob_directory: str):
-        self.blob_directory = blob_directory
-        os.makedirs(self.blob_directory, exist_ok=True)
+    def __init__(self, blobs_directory: str, links_directory: str, data_transfer_size: int):
+        self.blobs_directory = blobs_directory
+        self.links_directory = links_directory
 
-        self.blobs = os.listdir(self.blob_directory)
+        # make sure the directories exist
+        os.makedirs(self.blobs_directory, exist_ok=True)
+        os.makedirs(self.links_directory, exist_ok=True)
+
+        # read the links of each blob
+        self.blobs = {blob_id: self.read_blob_links(blob_id) for blob_id in os.listdir(self.blobs_directory)}
+    
+    def read_blob_links(self, blob_id: str) -> int:
+        """Read the number of links of a blob_id file."""
+        with open(os.path.join(self.links_directory, blob_id), "r") as f:
+            return int(f.read())
 
     def link(self, blob_id: str, current: Ice.Current = None) -> None:
         """Mark a blob_id file as linked in some directory."""
