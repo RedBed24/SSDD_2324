@@ -98,6 +98,8 @@ class BlobService(IceDrive.BlobService):
         self.blobs[blob_id] = 0
         self.link(blob_id)
 
+        return blob_id
+
     def download(
         self, blob_id: str, current: Ice.Current = None
     ) -> IceDrive.DataTransferPrx:
