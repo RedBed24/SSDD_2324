@@ -1,10 +1,7 @@
 import os.path
 import pytest
-import hashlib
 
 from icedrive_blob.blob import BlobService
-
-import configparser
 
 MOCK_BLOBS_DIRECTORY = "/tmp/ssdd/mock/blobs_directory"
 MOCK_LINKS_DIRECTORY = "/tmp/ssdd/mock/links_directory"
