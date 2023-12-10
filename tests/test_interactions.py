@@ -140,6 +140,22 @@ def test_unlink():
         blob_service.download(blob_id)
 
 
+def test_unlink_changes_link_file():
+    """Req # 7"""
+    blob_service, blob_id = setup()
+    blob_service.link(blob_id)
+
+    with open(os.path.join(MOCK_LINKS_DIRECTORY, blob_id), "r") as f:
+        assert f.read() == "2"
+
+    blob_service.unlink(blob_id)
+
+    with open(os.path.join(MOCK_LINKS_DIRECTORY, blob_id), "r") as f:
+        assert f.read() == "1"
+
+    clean(blob_id)
+
+
 def test_unlink_uknown_blob():
     """Req # 8"""
     blob_service = BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1024)
