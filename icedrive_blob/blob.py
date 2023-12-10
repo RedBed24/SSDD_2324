@@ -24,6 +24,8 @@ class DataTransfer(IceDrive.DataTransfer):
     def close(self, current: Ice.Current = None) -> None:
         """Close the currently opened file."""
         self.f.close()
+        if current:
+            current.adapter.remove(current.id)
 
 
 class BlobService(IceDrive.BlobService):
@@ -137,7 +139,10 @@ class BlobService(IceDrive.BlobService):
         except KeyError:
             raise IceDrive.UnknownBlob()
 
-        logging.info("BlobService: created DataTransfer for blob %s at %s", blob_id, "proxy")
+        servant = DataTransfer(os.path.join(self.blobs_directory, blob_id))
+        prx = current.adapter.addWithUUID(servant) if current else None
 
-        return DataTransfer(os.path.join(self.blobs_directory, blob_id))
+        logging.info("BlobService: created DataTransfer for blob %s at %s", blob_id, prx)
+
+        return IceDrive.DataTransferPrx.uncheckedCast(prx) if current else servant
 
