@@ -22,11 +22,16 @@ class BlobApp(Ice.Application):
         config = configparser.ConfigParser()
 
         # Load the configuration file, default to config/app.ini
-        path = args[2] if len(args) > 2 else os.path.join(os.path.dirname(__file__), "..", "config", "app.ini")
-        config.read(path)
+        path = args[1] if len(args) > 1 else os.path.join(os.path.dirname(__file__), "..", "config", "app.ini")
+        configs = config.read(path)
+
+        if not len(configs):
+            logging.error("Configuration: %s file not found.", path)
+            return 1
+
         logging.debug("Configuration: %s file loaded.", path)
 
-        servant = BlobService(config["Blobs"]["blobs_directory"], config["Blobs"]["links_directory"], config["Server"]["data_transfer_size"], config["Blobs"]["partial_uploads_directory"])
+        servant = BlobService(config["Blobs"]["blobs_directory"], config["Blobs"]["links_directory"], int(config["Server"]["data_transfer_size"]), config["Blobs"]["partial_uploads_directory"])
 
         servant_proxy = adapter.addWithUUID(servant) if config["Server"]["random_proxy"] != "false" else adapter.add(servant, self.communicator().stringToIdentity("BlobService"))
 
@@ -40,8 +45,5 @@ class BlobApp(Ice.Application):
 
 def main():
     """Handle the icedrive-authentication program."""
-    # usage: %prog [ice_config_file] [service_config_file]
-    # default ice_config_file: config/blob.config
-    ice_config_file = sys.args[1] if len(sys.args) > 1 else os.path.join(os.path.dirname(__file__), "..", "config", "blob.config")
     app = BlobApp()
-    return app.main(sys.argv, ice_config_file)
+    return app.main(sys.argv)
