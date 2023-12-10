@@ -42,6 +42,7 @@ def test_blobs_ids_are_valid():
     """Test if all blobs ids are valid, i.e, they are the sha256 hash of their contents."""
 
     blobs_directory = CONFIG["Blobs"]["blobs_directory"]
+    read_size = 1024
 
     if not os.path.exists(blobs_directory):
         pytest.skip("Directory does not exist")
@@ -49,7 +50,9 @@ def test_blobs_ids_are_valid():
     blobs = os.listdir(blobs_directory)
 
     for blob_id in blobs:
-        with open(os.path.join(blobs_directory, blob_id), "r") as f:
-            sha256 = hashlib.sha256()
-            sha256.update(f.read())
-            assert blob_id == sha256.hexdigest()
+        sha256 = hashlib.sha256()
+        with open(os.path.join(blobs_directory, blob_id), "rb") as f:
+            while data := f.read(read_size):
+                sha256.update(data)
+
+        assert blob_id == sha256.hexdigest()
