@@ -2,6 +2,7 @@
 import hashlib
 import os
 import uuid
+import logging
 
 import Ice
 
@@ -46,12 +47,18 @@ class BlobService(IceDrive.BlobService):
         os.makedirs(self.links_directory, exist_ok=True)
         os.makedirs(self.partial_uploads_directory, exist_ok=True)
 
+        logging.debug("BlobService: using directories: %s %s %s", self.blobs_directory, self.links_directory, self.partial_uploads_directory)
+
         # read the links of each blob
         self.blobs = {blob_id: self.read_blob_links(blob_id) for blob_id in os.listdir(self.blobs_directory)}
+
+        logging.info("BlobService: loaded %d blobs", len(self.blobs))
 
         self.data_transfer_size = data_transfer_size
 
         self.clean_partial_uploads()
+
+        logging.debug("BlobService: cleaned partial uploads")
     
     def read_blob_links(self, blob_id: str) -> int:
         """Read the number of links of a blob_id file."""
@@ -81,6 +88,7 @@ class BlobService(IceDrive.BlobService):
                 os.remove(os.path.join(self.blobs_directory, blob_id))
                 os.remove(os.path.join(self.links_directory, blob_id))
                 del self.blobs[blob_id]
+                logging.info("BlobService: removed blob %s", blob_id)
             else:
                 with open(os.path.join(self.links_directory, blob_id), "w") as f:
                     f.write(str(self.blobs[blob_id]))
@@ -93,6 +101,8 @@ class BlobService(IceDrive.BlobService):
         """Register a DataTransfer object to upload a file to the service."""
         tmp_filename = str(uuid.uuid4())
         sha256 = hashlib.sha256()
+
+        logging.debug("BlobService: started uploading blob %s", tmp_filename)
 
         with open(os.path.join(self.partial_uploads_directory, tmp_filename), "wb") as f:
             still_uploading = True
@@ -114,6 +124,8 @@ class BlobService(IceDrive.BlobService):
         self.blobs[blob_id] = 0
         self.link(blob_id)
 
+        logging.info("BlobService: finished uploading blob %s", blob_id)
+
         return blob_id
 
     def download(
@@ -124,6 +136,8 @@ class BlobService(IceDrive.BlobService):
             self.blobs[blob_id]
         except KeyError:
             raise IceDrive.UnknownBlob()
+
+        logging.info("BlobService: created DataTransfer for blob %s at %s", blob_id, "proxy")
 
         return DataTransfer(os.path.join(self.blobs_directory, blob_id))
 
