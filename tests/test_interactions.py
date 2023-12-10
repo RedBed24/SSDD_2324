@@ -8,6 +8,7 @@ import IceDrive
 
 MOCK_BLOBS_DIRECTORY = "/tmp/ssdd/mock/blobs_directory"
 MOCK_LINKS_DIRECTORY = "/tmp/ssdd/mock/links_directory"
+MOCK_PARTIAL_UPLOADS_DIRECTORY = "/tmp/ssdd/mock/partial_uploads_directory"
 
 DATA = b"Hello World"
 
@@ -16,7 +17,7 @@ def setup() -> str:
     blob = MockDataTransfer(DATA)
 
     # Create BlobService
-    blob_service = BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1024)
+    blob_service = BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1024, MOCK_PARTIAL_UPLOADS_DIRECTORY)
 
     # Upload
     return blob_service, blob_service.upload(blob)
@@ -88,7 +89,7 @@ def test_download_with_other_blobservice():
     blob.close()
 
     # Create another BlobService
-    blob_service = BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1024)
+    blob_service = BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1024, MOCK_PARTIAL_UPLOADS_DIRECTORY)
     
     # Get the data transfer object
     blob = blob_service.download(blob_id)
@@ -102,7 +103,7 @@ def test_download_with_other_blobservice():
 def test_invalid_download():
     """Test if the download method raises an exception when the blob_id is invalid.
     Req # 4"""
-    blob_service = BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1024)
+    blob_service = BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1024, MOCK_PARTIAL_UPLOADS_DIRECTORY)
 
     with pytest.raises(IceDrive.UnknownBlob):
         blob_service.download("invalid_blob_id")
@@ -123,7 +124,7 @@ def test_link():
 
 def test_link_uknown_blob():
     """Req # 6"""
-    blob_service = BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1024)
+    blob_service = BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1024, MOCK_PARTIAL_UPLOADS_DIRECTORY)
 
     with pytest.raises(IceDrive.UnknownBlob):
         blob_service.link("invalid_blob_id")
@@ -158,7 +159,7 @@ def test_unlink_changes_link_file():
 
 def test_unlink_uknown_blob():
     """Req # 8"""
-    blob_service = BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1024)
+    blob_service = BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1024, MOCK_PARTIAL_UPLOADS_DIRECTORY)
 
     with pytest.raises(IceDrive.UnknownBlob):
         blob_service.unlink("invalid_blob_id")

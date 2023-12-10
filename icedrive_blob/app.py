@@ -26,7 +26,7 @@ class BlobApp(Ice.Application):
         config.read(path)
         logging.debug("Configuration: %s file loaded.", path)
 
-        servant = BlobService(config["Blobs"]["blobs_directory"], config["Blobs"]["links_directory"], config["Server"]["data_transfer_size"])
+        servant = BlobService(config["Blobs"]["blobs_directory"], config["Blobs"]["links_directory"], config["Server"]["data_transfer_size"], config["Blobs"]["partial_uploads_directory"])
 
         servant_proxy = adapter.addWithUUID(servant) if config["Server"]["random_proxy"] != "false" else adapter.add(servant, self.communicator().stringToIdentity("BlobService"))
 

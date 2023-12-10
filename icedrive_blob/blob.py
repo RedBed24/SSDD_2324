@@ -1,6 +1,7 @@
 """Module for servants implementations."""
 import hashlib
 import os
+import uuid
 
 import Ice
 
@@ -26,29 +27,38 @@ class DataTransfer(IceDrive.DataTransfer):
 
 class BlobService(IceDrive.BlobService):
     """Implementation of an IceDrive.BlobService interface."""
-    def __init__(self, blobs_directory: str, links_directory: str, data_transfer_size: int):
-        if blobs_directory == links_directory:
-            raise ValueError("blob_directory and links_directory must be different")
+    def __init__(self, blobs_directory: str, links_directory: str, data_transfer_size: int, partial_uploads_directory: str):
+        if blobs_directory == links_directory or blobs_directory == partial_uploads_directory or links_directory == partial_uploads_directory:
+            raise ValueError("Store directories must be different")
 
         if data_transfer_size <= 0:
             raise ValueError("data_transfer_size must be greater than 0")
 
         self.blobs_directory = blobs_directory
         self.links_directory = links_directory
+        self.partial_uploads_directory = partial_uploads_directory
 
         # make sure the directories exist
         os.makedirs(self.blobs_directory, exist_ok=True)
         os.makedirs(self.links_directory, exist_ok=True)
+        os.makedirs(self.partial_uploads_directory, exist_ok=True)
 
         # read the links of each blob
         self.blobs = {blob_id: self.read_blob_links(blob_id) for blob_id in os.listdir(self.blobs_directory)}
 
         self.data_transfer_size = data_transfer_size
+
+        self.clean_partial_uploads()
     
     def read_blob_links(self, blob_id: str) -> int:
         """Read the number of links of a blob_id file."""
         with open(os.path.join(self.links_directory, blob_id), "r") as f:
             return int(f.read())
+
+    def clean_partial_uploads(self) -> None:
+        """Remove all partial uploads. Only needed if the service was closed while uploading."""
+        for filename in os.listdir(self.partial_uploads_directory):
+            os.remove(os.path.join(self.partial_uploads_directory, filename))
 
     def link(self, blob_id: str, current: Ice.Current = None) -> None:
         """Mark a blob_id file as linked in some directory."""
@@ -78,24 +88,24 @@ class BlobService(IceDrive.BlobService):
         self, blob: IceDrive.DataTransferPrx, current: Ice.Current = None
     ) -> str:
         """Register a DataTransfer object to upload a file to the service."""
-        # Read the file
-        still_uploading = True
-        data = b""
-        while still_uploading:
-            read_data = blob.read(self.data_transfer_size)
-            data += read_data
-            still_uploading = len(read_data) == self.data_transfer_size
+        tmp_filename = str(uuid.uuid4())
+        sha256 = hashlib.sha256()
+
+        with open(os.path.join(self.partial_uploads_directory, tmp_filename), "wb") as f:
+            still_uploading = True
+            while still_uploading:
+                read_data = blob.read(self.data_transfer_size)
+                sha256.update(read_data)
+                f.write(read_data)
+                still_uploading = len(read_data) == self.data_transfer_size
 
         blob.close()
 
         # Compute the blob_id
-        sha256 = hashlib.sha256()
-        sha256.update(data)
         blob_id = sha256.hexdigest()
 
-        # Store the blob file
-        with open(os.path.join(self.blobs_directory, blob_id), "wb") as f:
-            f.write(data)
+        # Rename the blob file
+        os.rename(os.path.join(self.partial_uploads_directory, tmp_filename), os.path.join(self.blobs_directory, blob_id))
 
         # Store the link file
         self.blobs[blob_id] = 0
