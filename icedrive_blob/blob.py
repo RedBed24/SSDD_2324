@@ -106,15 +106,18 @@ class BlobService(IceDrive.BlobService):
 
         logging.debug("BlobService: started uploading blob %s", tmp_filename)
 
-        with open(os.path.join(self.partial_uploads_directory, tmp_filename), "wb") as f:
-            still_uploading = True
-            while still_uploading:
-                read_data = blob.read(self.data_transfer_size)
-                sha256.update(read_data)
-                f.write(read_data)
-                still_uploading = len(read_data) == self.data_transfer_size
+        try:
+            with open(os.path.join(self.partial_uploads_directory, tmp_filename), "wb") as f:
+                still_uploading = True
+                while still_uploading:
+                    read_data = blob.read(self.data_transfer_size)
+                    sha256.update(read_data)
+                    f.write(read_data)
+                    still_uploading = len(read_data) == self.data_transfer_size
 
-        blob.close()
+            blob.close()
+        except IOError:
+            raise IceDrive.FailedToReadData()
 
         # Compute the blob_id
         blob_id = sha256.hexdigest()
