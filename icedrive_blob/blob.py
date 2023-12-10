@@ -77,7 +77,7 @@ class BlobService(IceDrive.BlobService):
         try:
             self.blobs[blob_id] += 1
         except KeyError:
-            raise IceDrive.UnknownBlob()
+            raise IceDrive.UnknownBlob(blob_id)
 
         with open(os.path.join(self.links_directory, blob_id), "w") as f:
             f.write(str(self.blobs[blob_id]))
@@ -95,7 +95,7 @@ class BlobService(IceDrive.BlobService):
                 with open(os.path.join(self.links_directory, blob_id), "w") as f:
                     f.write(str(self.blobs[blob_id]))
         except KeyError:
-            raise IceDrive.UnknownBlob()
+            raise IceDrive.UnknownBlob(blob_id)
 
     def upload(
         self, blob: IceDrive.DataTransferPrx, current: Ice.Current = None
@@ -140,7 +140,7 @@ class BlobService(IceDrive.BlobService):
         try:
             self.blobs[blob_id]
         except KeyError:
-            raise IceDrive.UnknownBlob()
+            raise IceDrive.UnknownBlob(blob_id)
 
         servant = DataTransfer(os.path.join(self.blobs_directory, blob_id))
         prx = current.adapter.addWithUUID(servant) if current else None
