@@ -72,4 +72,18 @@ def test_same_directory():
 def test_invalid_data_transfer_size():
     with pytest.raises(ValueError):
         BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 0, MOCK_PARTIAL_UPLOADS_DIRECTORY)
+    
+    with pytest.raises(TypeError):
+        BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 0.5, MOCK_PARTIAL_UPLOADS_DIRECTORY)
+
+
+def test_directory_not_string():
+    with pytest.raises(TypeError):
+        BlobService(1, MOCK_LINKS_DIRECTORY, 1, MOCK_PARTIAL_UPLOADS_DIRECTORY)
+
+    with pytest.raises(TypeError):
+        BlobService(MOCK_BLOBS_DIRECTORY, 1, 1, MOCK_PARTIAL_UPLOADS_DIRECTORY)
+
+    with pytest.raises(TypeError):
+        BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1, 1)
 

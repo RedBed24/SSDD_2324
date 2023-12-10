@@ -31,6 +31,9 @@ class BlobService(IceDrive.BlobService):
         if blobs_directory == links_directory or blobs_directory == partial_uploads_directory or links_directory == partial_uploads_directory:
             raise ValueError("Store directories must be different")
 
+        if not isinstance(data_transfer_size, int):
+            raise TypeError("data_transfer_size must be an integer")
+
         if data_transfer_size <= 0:
             raise ValueError("data_transfer_size must be greater than 0")
 
