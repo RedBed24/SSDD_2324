@@ -7,6 +7,13 @@ MOCK_BLOBS_DIRECTORY = "/tmp/ssdd/mock/blobs_directory"
 MOCK_LINKS_DIRECTORY = "/tmp/ssdd/mock/links_directory"
 MOCK_PARTIAL_UPLOADS_DIRECTORY = "/tmp/ssdd/mock/partial_uploads_directory"
 
+def clean():
+    # Can remove the directories because they are empty, they were just created
+    os.rmdir(MOCK_BLOBS_DIRECTORY)
+    os.rmdir(MOCK_LINKS_DIRECTORY)
+    os.rmdir(MOCK_PARTIAL_UPLOADS_DIRECTORY)
+
+
 def test_directory_creation():
     """Test directory didn't exist and is created when instantiating a Blob Service."""
 
@@ -17,10 +24,7 @@ def test_directory_creation():
 
     assert os.path.exists(MOCK_BLOBS_DIRECTORY) and os.path.exists(MOCK_LINKS_DIRECTORY) and os.path.exists(MOCK_PARTIAL_UPLOADS_DIRECTORY)
 
-    # Can remove the directories because they are empty, they were just created
-    os.rmdir(MOCK_BLOBS_DIRECTORY)
-    os.rmdir(MOCK_LINKS_DIRECTORY)
-    os.rmdir(MOCK_PARTIAL_UPLOADS_DIRECTORY)
+    clean()
 
 
 def test_directory_inst_altered():
@@ -29,6 +33,7 @@ def test_directory_inst_altered():
 
     os.makedirs(MOCK_BLOBS_DIRECTORY, exist_ok=True)
     os.makedirs(MOCK_LINKS_DIRECTORY, exist_ok=True)
+    os.makedirs(MOCK_PARTIAL_UPLOADS_DIRECTORY, exist_ok=True)
 
     blob_last_mod = os.path.getmtime(MOCK_BLOBS_DIRECTORY)
     link_last_mod = os.path.getmtime(MOCK_LINKS_DIRECTORY)
@@ -37,8 +42,7 @@ def test_directory_inst_altered():
 
     assert blob_last_mod == os.path.getmtime(MOCK_BLOBS_DIRECTORY) and link_last_mod == os.path.getmtime(MOCK_LINKS_DIRECTORY)
 
-    os.rmdir(MOCK_BLOBS_DIRECTORY)
-    os.rmdir(MOCK_LINKS_DIRECTORY)
+    clean()
 
 
 def test_partial_uploads_directory_is_cleaned():
@@ -51,39 +55,28 @@ def test_partial_uploads_directory_is_cleaned():
 
     assert not len(os.listdir(MOCK_PARTIAL_UPLOADS_DIRECTORY))
 
-
-def test_same_directory():
-    """Test if the same directory for blobs and links is not allowed."""
-    dir = "tmp"
-
-    with pytest.raises(ValueError):
-        BlobService(dir, dir, 1, dir)
-
-    with pytest.raises(ValueError):
-        BlobService(dir*2, dir, 1, dir)
-
-    with pytest.raises(ValueError):
-        BlobService(dir, dir*2, 1, dir)
-
-    with pytest.raises(ValueError):
-        BlobService(dir, dir, 1, dir*2)
+    clean()
 
 
-def test_invalid_data_transfer_size():
-    with pytest.raises(ValueError):
-        BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 0, MOCK_PARTIAL_UPLOADS_DIRECTORY)
-    
-    with pytest.raises(TypeError):
-        BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 0.5, MOCK_PARTIAL_UPLOADS_DIRECTORY)
+dir = "tmp"
+data = [
+    # Same directory
+    ((dir, dir, 1, dir), ValueError),
+    ((dir*2, dir, 1, dir), ValueError),
+    ((dir, dir*2, 1, dir), ValueError),
+    ((dir, dir, 1, dir*2), ValueError),
+    # Invalid data transfer size
+    ((MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 0, MOCK_PARTIAL_UPLOADS_DIRECTORY), ValueError),
+    ((MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 0.5, MOCK_PARTIAL_UPLOADS_DIRECTORY), TypeError),
+    # Directory is not a string
+    ((1, MOCK_LINKS_DIRECTORY, 1, MOCK_PARTIAL_UPLOADS_DIRECTORY), TypeError),
+    ((MOCK_BLOBS_DIRECTORY, 1, 1, MOCK_PARTIAL_UPLOADS_DIRECTORY), TypeError),
+    ((MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1, 1), TypeError),
+]
 
+@pytest.mark.parametrize("atributes, expected_exception", data)
+def test_blob_service_creation(atributes, expected_exception):
+    with pytest.raises(expected_exception):
+        BlobService(*atributes)
 
-def test_directory_not_string():
-    with pytest.raises(TypeError):
-        BlobService(1, MOCK_LINKS_DIRECTORY, 1, MOCK_PARTIAL_UPLOADS_DIRECTORY)
-
-    with pytest.raises(TypeError):
-        BlobService(MOCK_BLOBS_DIRECTORY, 1, 1, MOCK_PARTIAL_UPLOADS_DIRECTORY)
-
-    with pytest.raises(TypeError):
-        BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1, 1)
 

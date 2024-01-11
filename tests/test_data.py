@@ -3,6 +3,12 @@ import pytest
 import hashlib
 import configparser
 
+#
+# THESE TESTS ONLY WORK IF THE BLOB SERVICE HAS RUN AS A SERVICE
+# IT IS NOT POSSIBLE TO RUN THESE WITHOUT THE CREATED BLOBS
+# TESTS CHECK INTEGRITY OF THE STORED DATA
+#
+
 CONFIG = configparser.ConfigParser()
 CONFIG.read("config/app.ini")
 
