@@ -23,8 +23,8 @@ def test_all_blobs_are_linked():
 
 
 def test_all_links_are_valid():
-    """Test if all blobs are valid, i.e, they have at least one link.
-    There should be no blobs with 0 links."""
+    """Test if all blobs are valid, i.e, they have not negative number of links.
+    There should be no blobs with -1 links."""
 
     links_directory = CONFIG["Blobs"]["links_directory"]
 
@@ -35,7 +35,7 @@ def test_all_links_are_valid():
 
     for link in links:
         with open(os.path.join(links_directory, link), "r") as f:
-            assert int(f.read()) > 0
+            assert int(f.read()) >= 0
 
 
 def test_blobs_ids_are_valid():

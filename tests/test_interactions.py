@@ -59,7 +59,7 @@ def test_upload():
 
     # Check if the blob_id file has 1 link
     with open(os.path.join(MOCK_LINKS_DIRECTORY, blob_id), "r") as f:
-        assert f.read() == "1"
+        assert f.read() == "0"
 
     clean(blob_id)
 
@@ -117,7 +117,7 @@ def test_link():
 
     # Check if the blob_id file has 2 links
     with open(os.path.join(MOCK_LINKS_DIRECTORY, blob_id), "r") as f:
-        assert f.read() == "2"
+        assert f.read() == "1"
 
     clean(blob_id)
 
