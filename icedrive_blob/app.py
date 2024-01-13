@@ -1,9 +1,7 @@
 """Authentication service application."""
 
-import configparser
 import logging
 import sys
-import os.path
 from typing import List
 
 import Ice
@@ -19,21 +17,16 @@ class BlobApp(Ice.Application):
         adapter = self.communicator().createObjectAdapter("BlobAdapter")
         adapter.activate()
 
-        config = configparser.ConfigParser()
+        property = self.communicator().getProperties().getProperty
 
-        # Load the configuration file, default to config/app.ini
-        path = args[1] if len(args) > 1 else os.path.join(os.path.dirname(__file__), "..", "config", "app.ini")
-        configs = config.read(path)
+        servant = BlobService(
+            property("BlobsDirectory"),
+            property("LinksDirectory"),
+            int(property("DataTransferSize")),
+            property("PartialUploadsDirectory")
+        )
 
-        if not len(configs):
-            logging.error("Configuration: %s file not found.", path)
-            return 1
-
-        logging.debug("Configuration: %s file loaded.", path)
-
-        servant = BlobService(config["Blobs"]["blobs_directory"], config["Blobs"]["links_directory"], int(config["Server"]["data_transfer_size"]), config["Blobs"]["partial_uploads_directory"])
-
-        servant_proxy = adapter.addWithUUID(servant) if config["Server"]["random_proxy"] != "false" else adapter.add(servant, self.communicator().stringToIdentity("BlobService"))
+        servant_proxy = adapter.addWithUUID(servant)
 
         logging.info("Proxy: %s", servant_proxy)
 
