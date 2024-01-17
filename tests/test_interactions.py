@@ -20,7 +20,7 @@ def setup() -> str:
     blob_service = BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1024, MOCK_PARTIAL_UPLOADS_DIRECTORY)
 
     # Upload
-    return blob_service, blob_service.upload(blob)
+    return blob_service, blob_service.upload(None, blob)
 
 
 def rmdirs():
@@ -76,7 +76,7 @@ def test_download():
     blob_service, blob_id = setup()
 
     # Get the data transfer object
-    blob = blob_service.download(blob_id) 
+    blob = blob_service.download(None, blob_id) 
 
     # Check if the blob_id file contains the data
     assert blob.read(1024) == DATA
@@ -90,7 +90,7 @@ def test_download_with_other_blobservice():
     """Req # 3"""
     blob_service, blob_id = setup()
 
-    blob = blob_service.download(blob_id)
+    blob = blob_service.download(None, blob_id)
     data = blob.read(1024)
     blob.close()
 
@@ -98,7 +98,7 @@ def test_download_with_other_blobservice():
     blob_service = BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1024, MOCK_PARTIAL_UPLOADS_DIRECTORY)
     
     # Get the data transfer object
-    blob = blob_service.download(blob_id)
+    blob = blob_service.download(None, blob_id)
     # Check if the blob_id file contains the data
     assert blob.read(1024) == data
     blob.close()
@@ -112,7 +112,7 @@ def test_invalid_download():
     blob_service = BlobService(MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1024, MOCK_PARTIAL_UPLOADS_DIRECTORY)
 
     with pytest.raises(IceDrive.UnknownBlob):
-        blob_service.download("invalid_blob_id")
+        blob_service.download(None, "invalid_blob_id")
 
     rmdirs()
 
@@ -148,7 +148,7 @@ def test_unlink():
 
     # Try to get the blob_id file
     with pytest.raises(IceDrive.UnknownBlob):
-        blob_service.download(blob_id)
+        blob_service.download(None, blob_id)
 
     rmdirs()
 
