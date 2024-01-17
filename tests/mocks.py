@@ -1,4 +1,5 @@
-import Ice
+from typing import Callable
+
 import IceDrive
 
 from icedrive_blob.blob import DataTransfer
@@ -14,8 +15,9 @@ class MockUser(IceDrive.User):
         self.isAlive = lambda: value
 
 class MockAuthentication(IceDrive.Authentication):
-    def __init__(self, value: bool):
+    def __init__(self, value: bool, ice_ping: Callable[[], None]):
         self.verifyUser = lambda user: value
+        self.ice_ping = ice_ping
 
 class MockDiscovery(Discovery):
     def __init__(self, service: IceDrive.AuthenticationPrx):

@@ -6,6 +6,8 @@ import IceDrive
 
 from icedrive_blob.discovery import Discovery
 
+from mock import MockAuthentication
+
 
 def test_announce_directory():
 	Discovery().announceDirectoryServicey(None)
@@ -22,11 +24,7 @@ def test_announce_authentication():
 def test_get_authentication():
 	discovery = Discovery()
 
-	class MockAuthentication:
-		def ice_ping(self):
-			pass
-
-	auth = MockAuthentication()
+	auth = MockAuthentication(None, lambda: None)
 
 	discovery.announceAuthentication(auth)
 
@@ -36,11 +34,9 @@ def test_get_authentication():
 def test_get_authentication_auth_raises_noendpoint():
 	discovery = Discovery()
 
-	class MockAuthentication:
-		def ice_ping(self):
-			raise Ice.NoEndpointException()
-
-	auth = MockAuthentication()
+	def ice_ping():
+		raise Ice.NoEndpointException()
+	auth = MockAuthentication(None, ice_ping)
 
 	discovery.announceAuthentication(auth)
 
