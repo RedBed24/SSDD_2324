@@ -11,6 +11,7 @@ import IceDrive
 
 from .blob import BlobService
 from .discovery import Discovery
+from .delayed_response import BlobQuery
 
 
 class BlobApp(Ice.Application):
@@ -40,12 +41,14 @@ class BlobApp(Ice.Application):
         )
 
         discovery_topic = BlobApp.getTopic(property("DiscoveryTopic"), topic_manager)
+        blob_query_topic = BlobApp.getTopic(property("BlobQueryTopic"), topic_manager)
 
         discovery_servant = Discovery()
         discovery_prx = adapter.addWithUUID(discovery_servant)
         discovery_topic.subscribeAndGetPublisher({}, discovery_prx)
 
         servant = BlobService(
+            IceDrive.BlobQueryPrx.uncheckedCast(blob_query_topic.getPublisher()),
             discovery_servant,
             property("BlobsDirectory"),
             property("LinksDirectory"),
@@ -56,6 +59,10 @@ class BlobApp(Ice.Application):
         servant_proxy = adapter.addWithUUID(servant)
 
         logging.info("Proxy: %s", servant_proxy)
+
+        query_servant = BlobQuery(servant)
+        query_prx = adapter.addWithUUID(query_servant)
+        blob_query_topic.subscribeAndGetPublisher({}, query_prx)
 
         shutdown = threading.Event()
         publisher = IceDrive.DiscoveryPrx.uncheckedCast(discovery_topic.getPublisher())

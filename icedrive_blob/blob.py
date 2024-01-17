@@ -31,7 +31,8 @@ class DataTransfer(IceDrive.DataTransfer):
 
 class BlobService(IceDrive.BlobService):
     """Implementation of an IceDrive.BlobService interface."""
-    def __init__(self, discovery_servant: Discovery, blobs_directory: str, links_directory: str, data_transfer_size: int, partial_uploads_directory: str):
+    def __init__(self, query_prx: IceDrive.BlobQueryPrx, discovery_servant: Discovery, blobs_directory: str, links_directory: str, data_transfer_size: int, partial_uploads_directory: str):
+        self.query_prx = query_prx
         self.discovery_servant = discovery_servant
         if blobs_directory == links_directory or blobs_directory == partial_uploads_directory or links_directory == partial_uploads_directory:
             raise ValueError("Store directories must be different")
