@@ -4,16 +4,20 @@ title Interfaces IceDrive
 skinparam ClassAttributeIconSize 0
 
 package IceDrive {
-  interface DirectoryService
+	interface DirectoryService
 	interface User
 
 	exception FailedToReadData
-	exception UnknownBlob
-  exception TemporaryUnavailable
+	exception UnknownBlob {
+		+ blobId: string
+	}
+	exception TemporaryUnavailable {
+		+ serviceName: string
+	}
 
-  Discovery ..> Authentication
-  Discovery ..> DirectoryService
-  Discovery ..> BlobService
+	Discovery ..> Authentication
+	Discovery ..> DirectoryService
+	Discovery ..> BlobService
 
 	BlobService ..> DataTransfer
 	BlobService ..> User
@@ -21,18 +25,17 @@ package IceDrive {
 
 	interface Authentication {
 		+ verifyUser(user: User*): bool
-		...
 	}
 
-  interface Discovery {
+	interface Discovery {
 		+ announceAuthentication(prx: Authentication*): void
 		+ announceDirectoryService(prx: DirectoryService*): void
 		+ announceBlobService(prx: BlobService*): void
-  }
+	}
 
 	interface DataTransfer {
-		+ read(size: int) throws FailedToReadData: Bytes 
-		+ close(): void 
+		+ read(size: int): Bytes throws FailedToReadData
+		+ close(): void
 	}
 
 	interface BlobService {
@@ -50,10 +53,10 @@ package IceDrive {
 	}
 
 	interface BlobQuery {
-		+ downloadBlob(blobId: string, response: BlobQueryResponse*): void 
-		+ blobIdExists(blobId: string, response: BlobQueryResponse*): void 
-		+ linkBlob(blobId: string, response: BlobQueryResponse*): void 
-		+ unlinkBlob(blobId: string, response: BlobQueryResponse*): void 
+		+ downloadBlob(blobId: string, response: BlobQueryResponse*): void
+		+ blobIdExists(blobId: string, response: BlobQueryResponse*): void
+		+ linkBlob(blobId: string, response: BlobQueryResponse*): void
+		+ unlinkBlob(blobId: string, response: BlobQueryResponse*): void
 	}
 }
 

@@ -2,7 +2,8 @@ SRC_DIR := src/
 BUILD_DIR := build/
 
 STATIC :=
-DIAGRAMS :=
+DIAGRAMS := interfaces.svg uso_interfaces.svg apuntes_sobre_interfaces.svg
+
 
 all: dirs styles $(DIAGRAMS) index.html
 
