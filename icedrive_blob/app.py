@@ -3,14 +3,31 @@
 import logging
 import sys
 from typing import List
+import threading
 
 import Ice
+import IceStorm
+import IceDrive
 
 from .blob import BlobService
+from .discovery import Discovery
 
 
 class BlobApp(Ice.Application):
     """Implementation of the Ice.Application for the Authentication service."""
+    @staticmethod
+    def announce(shutdown: threading.Event, publisher: IceDrive.DiscoveryPrx, blob_prx: IceDrive.BlobServicePrx):
+        while not shutdown.wait(5):
+            publisher.announceBlobService(blob_prx)
+
+    @staticmethod
+    def getTopic(topic_name: str, topic_manager: IceStorm.TopicManagerPrx) -> IceStorm.TopicPrx:
+        try:
+            topic = topic_manager.retrieve(topic_name)
+        except IceStorm.NoSuchTopic:
+            topic = topic_manager.create(topic_name)
+
+        return topic
 
     def run(self, args: List[str]) -> int:
         """Execute the code for the BlobApp class."""
@@ -18,6 +35,15 @@ class BlobApp(Ice.Application):
         adapter.activate()
 
         property = self.communicator().getProperties().getProperty
+        topic_manager = IceStorm.TopicManagerPrx.checkedCast(
+            self.communicator().propertyToProxy("IceStorm.TopicManager.Proxy")
+        )
+
+        discovery_topic = BlobApp.getTopic(property("DiscoveryTopic"), topic_manager)
+
+        discovery_servant = Discovery()
+        discovery_prx = adapter.addWithUUID(discovery_servant)
+        discovery_topic.subscribeAndGetPublisher({}, discovery_prx)
 
         servant = BlobService(
             property("BlobsDirectory"),
@@ -30,8 +56,14 @@ class BlobApp(Ice.Application):
 
         logging.info("Proxy: %s", servant_proxy)
 
+        shutdown = threading.Event()
+        publisher = IceDrive.DiscoveryPrx.uncheckedCast(discovery_topic.getPublisher())
+        blob_prx = IceDrive.BlobServicePrx.uncheckedCast(servant_proxy)
+        threading.Thread(target=BlobApp.announce, args=(shutdown, publisher, blob_prx)).start()
+
         self.shutdownOnInterrupt()
         self.communicator().waitForShutdown()
+        shutdown.set()
 
         return 0
 
