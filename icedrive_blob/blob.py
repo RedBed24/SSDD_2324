@@ -98,7 +98,7 @@ class BlobService(IceDrive.BlobService):
             raise IceDrive.UnknownBlob(blob_id)
 
     def upload(
-        self, blob: IceDrive.DataTransferPrx, current: Ice.Current = None
+        self, user: IceDrive.UserPrx, blob: IceDrive.DataTransferPrx, current: Ice.Current = None
     ) -> str:
         """Register a DataTransfer object to upload a file to the service."""
         tmp_filename = str(uuid.uuid4())
@@ -134,7 +134,7 @@ class BlobService(IceDrive.BlobService):
         return blob_id
 
     def download(
-        self, blob_id: str, current: Ice.Current = None
+        self, user: IceDrive.UserPrx, blob_id: str, current: Ice.Current = None
     ) -> IceDrive.DataTransferPrx:
         """Return a DataTransfer objet to enable the client to download the given blob_id."""
         try:
