@@ -6,7 +6,7 @@ import IceDrive
 
 from icedrive_blob.discovery import Discovery
 
-from mock import MockAuthentication
+from mocks import MockAuthentication
 
 
 def test_announce_directory():
