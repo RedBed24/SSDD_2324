@@ -1,7 +1,6 @@
 import os
 import pytest
 import hashlib
-import configparser
 
 #
 # THESE TESTS ONLY WORK IF THE BLOB SERVICE HAS RUN AS A SERVICE
@@ -9,20 +8,17 @@ import configparser
 # TESTS CHECK INTEGRITY OF THE STORED DATA
 #
 
-CONFIG = configparser.ConfigParser()
-CONFIG.read("config/app.ini")
+USED_BLOBS_DIRECTORY = "/tmp/ssdd/blobs"
+USED_LINKS_DIRECTORY = "/tmp/ssdd/links"
 
 def test_all_blobs_are_linked():
     """Test if all blobs are linked when instantiating a Blob Service."""
 
-    blobs_directory = CONFIG["Blobs"]["blobs_directory"]
-    links_directory = CONFIG["Blobs"]["links_directory"]
-
-    if not os.path.exists(blobs_directory) or not os.path.exists(links_directory):
+    if not os.path.exists(USED_BLOBS_DIRECTORY) or not os.path.exists(USED_LINKS_DIRECTORY):
         pytest.skip("Directories do not exist")
 
-    blobs = os.listdir(blobs_directory)
-    links = os.listdir(links_directory)
+    blobs = os.listdir(USED_BLOBS_DIRECTORY)
+    links = os.listdir(USED_LINKS_DIRECTORY)
 
     # FIXME: files of directories are in same order?
     assert blobs == links
@@ -32,32 +28,29 @@ def test_all_links_are_valid():
     """Test if all blobs are valid, i.e, they have not negative number of links.
     There should be no blobs with -1 links."""
 
-    links_directory = CONFIG["Blobs"]["links_directory"]
-
-    if not os.path.exists(links_directory):
+    if not os.path.exists(USED_LINKS_DIRECTORY):
         pytest.skip("Directory does not exist")
 
-    links = os.listdir(links_directory)
+    links = os.listdir(USED_LINKS_DIRECTORY)
 
     for link in links:
-        with open(os.path.join(links_directory, link), "r") as f:
+        with open(os.path.join(USED_LINKS_DIRECTORY, link), "r") as f:
             assert int(f.read()) >= 0
 
 
 def test_blobs_ids_are_valid():
     """Test if all blobs ids are valid, i.e, they are the sha256 hash of their contents."""
 
-    blobs_directory = CONFIG["Blobs"]["blobs_directory"]
     read_size = 1024
 
-    if not os.path.exists(blobs_directory):
+    if not os.path.exists(USED_BLOBS_DIRECTORY):
         pytest.skip("Directory does not exist")
 
-    blobs = os.listdir(blobs_directory)
+    blobs = os.listdir(USED_BLOBS_DIRECTORY)
 
     for blob_id in blobs:
         sha256 = hashlib.sha256()
-        with open(os.path.join(blobs_directory, blob_id), "rb") as f:
+        with open(os.path.join(USED_BLOBS_DIRECTORY, blob_id), "rb") as f:
             while data := f.read(read_size):
                 sha256.update(data)
 
