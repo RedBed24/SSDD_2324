@@ -30,9 +30,9 @@ jobs:
       - name: Install Dependencies
         run: sudo apt-get update && sudo apt-get install plantuml pandoc
 
-      - name: Install latest pandoc
+      - name: Install latest dependencies
         working-directory: doc/
-        run: make pandoc
+        run: make pandoc plantuml.jar
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

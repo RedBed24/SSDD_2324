@@ -17,7 +17,7 @@ styles: styles.html
 static: $(STATIC)
 	cp $^ $(BUILD_DIR)
 
-plantuml:
+plantuml.jar:
 	wget https://github.com/plantuml/plantuml/releases/download/v1.2023.13/plantuml-lgpl-1.2023.13.jar
 	mv plantuml-lgpl-1.2023.13.jar plantuml.jar
 
