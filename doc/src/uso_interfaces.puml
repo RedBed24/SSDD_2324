@@ -1,0 +1,71 @@
+@startuml uso_interfaces
+title Uso Interfaces IceDrive
+
+skinparam ClassAttributeIconSize 0
+
+package IceDrive {
+	interface Discovery
+	interface Authentication
+	interface User
+	interface DataTransfer
+	interface BlobService
+	interface BlobQueryResponse
+	interface BlobQuery
+}
+
+package icedrive_blob {
+	Discovery <|.. MyDiscovery
+	DataTransfer <|.. MyDataTransfer
+	BlobService <|.. MyBlobService
+	BlobQuery <|.. MyBlobQuery
+	BlobQueryResponse <|.. MyBlobQueryResponse
+
+	MyBlobQuery "1" --> "1" MyBlobService: > Asks to
+	MyBlobService "1" --> "1" BlobQuery: > Asks to
+
+	Authentication <.. MyDiscovery
+
+	BlobQueryResponse <.. MyBlobQuery
+	User <.. MyAuthenticationQueryResponse
+
+	class MyDiscovery {
+		+ authentications: Set[Authentication*]
+		+ directories: Set[DirectoryService*]
+		+ blobs: Set[BlobService*]
+		+ __init__(self)
+		+ announceAuthentication(prx: Authentication*): void
+		+ announceDirectoryService(prx: DirectoryService*): void
+		+ announceBlobService(prx: BlobService*): void
+		- {static} __get(set: Set[Any]): Any throws TemporaryUnavailable
+		+ getAuthentication(): Authentication*
+	}
+
+	class MyDataTransfer {
+		+ read(size: int) throws FailedToReadData: Bytes 
+		+ close(): void 
+	}
+
+	class MyBlobService {
+		+ discovery: MyDiscovery
+		+ blobs: Dict[str, int]
+		+ blobs_directory: str
+		+ links_directory: str
+		+ partial_uploads_directory: str
+		+ link(blobId: string): void throws UnknownBlob
+		+ unlink(blobId: string): void throws UnknownBlob
+		+ upload(user: User*, blob: DataTransfer*): string throws FailedToReadData, TemporaryUnavailable
+		+ download(user: User*, string blobId): DataTransfer* throws UnknownBlob, TemporaryUnavailable
+	}
+
+	class MyBlobQuery {
+		- sirvienteAuthenticacion: MyAuthentication
+		+ __init__(self, sirvienteAuthenticacion: MyAuthentication)
+	}
+
+	class MyBlobQueryResponse {
+		- respuesta: Ice.Future
+		+ __init__(self, respuesta: Ice.Future)
+	}
+}
+
+@enduml

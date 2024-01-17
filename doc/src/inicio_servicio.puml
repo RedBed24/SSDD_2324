@@ -1,0 +1,33 @@
+@startuml inicio_servicio
+title Inicio del servicio
+
+participant adapter
+participant discovery_topic
+participant authentication_topic
+
+participant service
+
+participant "discovery_servant:\nMyDiscovery" as discovery_servant
+participant "authentication_servant:\nMyAuthentication" as authentication_servant
+participant "authentication_query_servant:\nMyAuthenticationQuery" as authentication_query_servant
+
+activate service
+service -> discovery_servant **: MyDiscovery()
+service -> adapter: addWithUUID(discovery_servant)
+service -> discovery_topic: suscribe(discovery_servant)
+
+service -> authentication_servant **: MyAuthentication("persistencia/usuarios.json")
+service -> adapter: addWithUUID(authentication_servant)
+
+service -> authentication_query_servant **: MyAuthenticationQuery(authentication_servant)
+service -> adapter: addWithUUID(authentication_query_servant)
+service -> authentication_topic: suscribe(authentication_query_servant)
+
+note over authentication_servant
+	Además de responder por UUID de la primera práctica
+	también responde a llamadas del topic de autenticación
+	Pero estas llamadas no le llegan directamente
+	le llegan a través de authentication_query_servant
+end note
+
+@enduml
