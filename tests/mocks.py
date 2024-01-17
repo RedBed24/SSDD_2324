@@ -15,7 +15,7 @@ class MockUser(IceDrive.User):
         self.isAlive = lambda: value
 
 class MockAuthentication(IceDrive.Authentication):
-    def __init__(self, value: bool, ice_ping: Callable[[], None]):
+    def __init__(self, value: bool, ice_ping: Callable[[], None] = lambda: None):
         self.verifyUser = lambda user: value
         self.ice_ping = ice_ping
 
