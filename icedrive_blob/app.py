@@ -46,6 +46,7 @@ class BlobApp(Ice.Application):
         discovery_topic.subscribeAndGetPublisher({}, discovery_prx)
 
         servant = BlobService(
+            discovery_servant,
             property("BlobsDirectory"),
             property("LinksDirectory"),
             int(property("DataTransferSize")),

@@ -8,6 +8,7 @@ import Ice
 
 import IceDrive
 
+from .discovery import Discovery
 
 class DataTransfer(IceDrive.DataTransfer):
     """Implementation of an IceDrive.DataTransfer interface."""
@@ -30,7 +31,8 @@ class DataTransfer(IceDrive.DataTransfer):
 
 class BlobService(IceDrive.BlobService):
     """Implementation of an IceDrive.BlobService interface."""
-    def __init__(self, blobs_directory: str, links_directory: str, data_transfer_size: int, partial_uploads_directory: str):
+    def __init__(self, discovery_servant: Discovery, blobs_directory: str, links_directory: str, data_transfer_size: int, partial_uploads_directory: str):
+        self.discovery_servant = discovery_servant
         if blobs_directory == links_directory or blobs_directory == partial_uploads_directory or links_directory == partial_uploads_directory:
             raise ValueError("Store directories must be different")
 
@@ -101,6 +103,9 @@ class BlobService(IceDrive.BlobService):
         self, user: IceDrive.UserPrx, blob: IceDrive.DataTransferPrx, current: Ice.Current = None
     ) -> str:
         """Register a DataTransfer object to upload a file to the service."""
+        if not self.discovery_servant.getAtuhencticationService().verifyUser(user):
+            raise IceDrive.FailedToReadData
+
         tmp_filename = str(uuid.uuid4())
         sha256 = hashlib.sha256()
 
@@ -109,7 +114,7 @@ class BlobService(IceDrive.BlobService):
         try:
             with open(os.path.join(self.partial_uploads_directory, tmp_filename), "wb") as f:
                 still_uploading = True
-                while still_uploading:
+                while still_uploading and user.isAlive():
                     read_data = blob.read(self.data_transfer_size)
                     sha256.update(read_data)
                     f.write(read_data)
@@ -117,6 +122,9 @@ class BlobService(IceDrive.BlobService):
 
             blob.close()
         except IOError:
+            raise IceDrive.FailedToReadData()
+
+        if still_uploading:
             raise IceDrive.FailedToReadData()
 
         # Compute the blob_id
@@ -137,10 +145,13 @@ class BlobService(IceDrive.BlobService):
         self, user: IceDrive.UserPrx, blob_id: str, current: Ice.Current = None
     ) -> IceDrive.DataTransferPrx:
         """Return a DataTransfer objet to enable the client to download the given blob_id."""
-        try:
-            self.blobs[blob_id]
-        except KeyError:
-            raise IceDrive.UnknownBlob(blob_id)
+        if user and not self.discovery_servant.getAtuhencticationService().verifyUser(user):
+            raise IceDrive.FailedToReadData
+
+        if blob_id not in self.blobs:
+            if not current:
+                raise IceDrive.UnknownBlob(blob_id)
+            return BlobService.ask_for_help(self.query_prx.downloadBlob, blob_id, current.adapter)
 
         servant = DataTransfer(os.path.join(self.blobs_directory, blob_id))
         prx = current.adapter.addWithUUID(servant) if current else None
