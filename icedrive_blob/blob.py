@@ -125,8 +125,8 @@ class BlobService(IceDrive.BlobService):
         # Rename the blob file
         os.rename(os.path.join(self.partial_uploads_directory, tmp_filename), os.path.join(self.blobs_directory, blob_id))
 
-        # Store the link file
-        self.blobs[blob_id] = 0
+        # Store the link file, as 0 links, it hasn't been explicitly linked yet, but we need a link file of this blob
+        self.blobs[blob_id] = -1
         self.link(blob_id)
 
         logging.info("BlobService: finished uploading blob %s", blob_id)

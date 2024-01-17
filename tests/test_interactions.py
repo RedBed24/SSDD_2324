@@ -22,11 +22,17 @@ def setup() -> str:
     # Upload
     return blob_service, blob_service.upload(blob)
 
+
+def rmdirs():
+    os.rmdir(MOCK_BLOBS_DIRECTORY)
+    os.rmdir(MOCK_LINKS_DIRECTORY)
+    os.rmdir(MOCK_PARTIAL_UPLOADS_DIRECTORY)
+
+
 def clean(blob_id: str):
     os.remove(os.path.join(MOCK_BLOBS_DIRECTORY, blob_id))
     os.remove(os.path.join(MOCK_LINKS_DIRECTORY, blob_id))
-    os.rmdir(MOCK_BLOBS_DIRECTORY)
-    os.rmdir(MOCK_LINKS_DIRECTORY)
+    rmdirs()
 
 
 class MockDataTransfer(DataTransfer):
@@ -59,7 +65,7 @@ def test_upload():
 
     # Check if the blob_id file has 1 link
     with open(os.path.join(MOCK_LINKS_DIRECTORY, blob_id), "r") as f:
-        assert f.read() == "1"
+        assert f.read() == "0"
 
     clean(blob_id)
 
@@ -108,6 +114,8 @@ def test_invalid_download():
     with pytest.raises(IceDrive.UnknownBlob):
         blob_service.download("invalid_blob_id")
 
+    rmdirs()
+
 
 def test_link():
     """Req # 5"""
@@ -117,7 +125,7 @@ def test_link():
 
     # Check if the blob_id file has 2 links
     with open(os.path.join(MOCK_LINKS_DIRECTORY, blob_id), "r") as f:
-        assert f.read() == "2"
+        assert f.read() == "1"
 
     clean(blob_id)
 
@@ -128,6 +136,8 @@ def test_link_uknown_blob():
 
     with pytest.raises(IceDrive.UnknownBlob):
         blob_service.link("invalid_blob_id")
+
+    rmdirs()
 
 
 def test_unlink():
@@ -140,10 +150,13 @@ def test_unlink():
     with pytest.raises(IceDrive.UnknownBlob):
         blob_service.download(blob_id)
 
+    rmdirs()
+
 
 def test_unlink_changes_link_file():
     """Req # 7"""
     blob_service, blob_id = setup()
+    blob_service.link(blob_id)
     blob_service.link(blob_id)
 
     with open(os.path.join(MOCK_LINKS_DIRECTORY, blob_id), "r") as f:
@@ -164,6 +177,8 @@ def test_unlink_uknown_blob():
     with pytest.raises(IceDrive.UnknownBlob):
         blob_service.unlink("invalid_blob_id")
 
+    rmdirs()
+
 
 def test_unlinks_deletes():
     """Req # 9"""
@@ -174,4 +189,6 @@ def test_unlinks_deletes():
     # Check if the blob_id file does not exist
     assert not os.path.exists(os.path.join(MOCK_BLOBS_DIRECTORY, blob_id))
     assert not os.path.exists(os.path.join(MOCK_LINKS_DIRECTORY, blob_id))
+
+    rmdirs()
 
