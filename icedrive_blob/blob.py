@@ -149,9 +149,7 @@ class BlobService(IceDrive.BlobService):
             raise IceDrive.FailedToReadData
 
         if blob_id not in self.blobs:
-            if not current:
-                raise IceDrive.UnknownBlob(blob_id)
-            return BlobService.ask_for_help(self.query_prx.downloadBlob, blob_id, current.adapter)
+            raise IceDrive.UnknownBlob(blob_id)
 
         servant = DataTransfer(os.path.join(self.blobs_directory, blob_id))
         prx = current.adapter.addWithUUID(servant) if current else None
