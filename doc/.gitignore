@@ -1,0 +1,6 @@
+# Ignore local pandoc executable
+pandoc
+
+# Ignore build dir
+build/
+
