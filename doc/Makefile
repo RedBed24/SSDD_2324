@@ -17,6 +17,10 @@ styles: styles.html
 static: $(STATIC)
 	cp $^ $(BUILD_DIR)
 
+plantuml:
+	wget https://github.com/plantuml/plantuml/releases/download/v1.2023.13/plantuml-lgpl-1.2023.13.jar
+	mv plantuml-lgpl-1.2023.13.jar plantuml.jar
+
 pandoc:
 	wget https://github.com/jgm/pandoc/releases/download/3.1.11.1/pandoc-3.1.11.1-linux-amd64.tar.gz
 	tar -xvf pandoc-3.1.11.1-linux-amd64.tar.gz
@@ -28,7 +32,7 @@ pandoc:
 	./pandoc $^ -o $(BUILD_DIR)$@ --mathjax -s
 
 %.svg: $(SRC_DIR)%.puml
-	plantuml -tsvg $^ -o ../$(BUILD_DIR)
+	java -jar plantuml.jar -tsvg $^ -o ../$(BUILD_DIR)
 
 clean:
 	rm -rf *~ $(BUILD_DIR) $(SRC_DIR)*~ pandoc
