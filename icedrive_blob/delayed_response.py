@@ -39,26 +39,26 @@ class BlobQuery(IceDrive.BlobQuery):
     def downloadBlob(self, blob_id: str, response: IceDrive.BlobQueryResponsePrx, current: Ice.Current = None) -> None:
         """Receive a query for downloading an archive based on `blob_id`."""
         logging.debug("BlobQuery: received download query for blob %s", blob_id)
-        if blob_id in self.blob_servant.blobs:
+        if blob_id in self.blob_servant:
             response.downloadBlob(self.blob_servant.download(None, blob_id))
 
     def blobExists(self, blob_id: str, response: BlobQueryResponse, current: Ice.Current = None) -> None:
         """Receive a query to check if `blob_id` exists."""
         logging.debug("BlobQuery: received blobIdExists query for blob %s", blob_id)
-        if blob_id in self.blob_servant.blobs:
+        if blob_id in self.blob_servant:
             response.blobExists()
 
     def linkBlob(self, blob_id: str, response: IceDrive.BlobQueryResponsePrx, current: Ice.Current = None) -> None:
         """Receive a query to create a link for `blob_id` archive if it exists."""
         logging.debug("BlobQuery: received link query for blob %s", blob_id)
-        if blob_id in self.blob_servant.blobs:
+        if blob_id in self.blob_servant:
             self.blob_servant.link(blob_id)
             response.blobLinked()
 
     def unlinkBlob(self, blob_id: str, response: IceDrive.BlobQueryResponsePrx, current: Ice.Current = None) -> None:
         """Receive a query to destroy a link for `blob_id` archive if it exists."""
         logging.debug("BlobQuery: received unlink query for blob %s", blob_id)
-        if blob_id in self.blob_servant.blobs:
+        if blob_id in self.blob_servant:
             self.blob_servant.unlink(blob_id)
             response.blobUnlinked()
 

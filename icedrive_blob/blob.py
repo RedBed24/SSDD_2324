@@ -65,11 +65,14 @@ class BlobService(IceDrive.BlobService):
         self.clean_partial_uploads()
 
         logging.debug("BlobService: cleaned partial uploads")
-    
+
     def read_blob_links(self, blob_id: str) -> int:
         """Read the number of links of a blob_id file."""
         with open(os.path.join(self.links_directory, blob_id), "r") as f:
             return int(f.read())
+
+    def __contains__(self, blob_id: str) -> bool:
+        return blob_id in self.blobs
 
     def clean_partial_uploads(self) -> None:
         """Remove all partial uploads. Only needed if the service was closed while uploading."""
@@ -135,12 +138,13 @@ class BlobService(IceDrive.BlobService):
             raise IceDrive.FailedToReadData
 
         tmp_filename = str(uuid.uuid4())
+        tmp_path = os.path.join(self.partial_uploads_directory, tmp_filename)
         sha256 = hashlib.sha256()
 
         logging.debug("BlobService: started uploading blob %s", tmp_filename)
 
         try:
-            with open(os.path.join(self.partial_uploads_directory, tmp_filename), "wb") as f:
+            with open(tmp_path, "wb") as f:
                 still_uploading = True
                 while still_uploading and user.isAlive():
                     read_data = blob.read(self.data_transfer_size)
@@ -163,10 +167,10 @@ class BlobService(IceDrive.BlobService):
                 raise IceDrive.UnknownBlob(blob_id)
             # or no one has the blob
             BlobService.ask_for_help(self.query_prx.blobIdExists, blob_id, current.adapter)
-            os.remove(os.path.join(self.partial_uploads_directory, tmp_filename))
+            os.remove(tmp_path)
         except IceDrive.UnknownBlob:
             # Rename the blob file
-            os.rename(os.path.join(self.partial_uploads_directory, tmp_filename), os.path.join(self.blobs_directory, blob_id))
+            os.rename(tmp_path, os.path.join(self.blobs_directory, blob_id))
 
             # Store the link file, as 0 links, it hasn't been explicitly linked yet, but we need a link file of this blob
             self.blobs[blob_id] = -1
