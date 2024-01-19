@@ -1,8 +1,6 @@
 name: PyTest
 on:
   push:
-    branches:
-      - "*"
     branches-ignore:
       - "features/doc"
 
