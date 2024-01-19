@@ -1,0 +1,7 @@
+# Ignore local executables
+pandoc
+plantuml.jar
+
+# Ignore build dir
+build/
+

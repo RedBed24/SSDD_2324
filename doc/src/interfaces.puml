@@ -1,0 +1,63 @@
+@startuml interfaces
+title Interfaces IceDrive
+
+skinparam ClassAttributeIconSize 0
+
+package IceDrive {
+	interface DirectoryService
+	interface User
+
+	exception FailedToReadData
+	exception UnknownBlob {
+		+ blobId: string
+	}
+	exception TemporaryUnavailable {
+		+ serviceName: string
+	}
+
+	Discovery ..> Authentication
+	Discovery ..> DirectoryService
+	Discovery ..> BlobService
+
+	BlobService ..> DataTransfer
+	BlobService ..> User
+	BlobQuery ..> BlobQueryResponse
+
+	interface Authentication {
+		+ verifyUser(user: User*): bool
+	}
+
+	interface Discovery {
+		+ announceAuthentication(prx: Authentication*): void
+		+ announceDirectoryService(prx: DirectoryService*): void
+		+ announceBlobService(prx: BlobService*): void
+	}
+
+	interface DataTransfer {
+		+ read(size: int): Bytes throws FailedToReadData
+		+ close(): void
+	}
+
+	interface BlobService {
+		+ link(blobId: string): void throws UnknownBlob
+		+ unlink(blobId: string): void throws UnknownBlob
+		+ upload(user: User*, blob: DataTransfer*): string throws FailedToReadData, TemporaryUnavailable
+		+ download(user: User*, string blobId): DataTransfer* throws UnknownBlob, TemporaryUnavailable
+	}
+
+	interface BlobQueryResponse {
+		+ downloadBlob(blob: DataTransfer*): void
+		+ blobExists(): void
+		+ blobLinked(): void
+		+ blobUnlinked(): void
+	}
+
+	interface BlobQuery {
+		+ downloadBlob(blobId: string, response: BlobQueryResponse*): void
+		+ blobIdExists(blobId: string, response: BlobQueryResponse*): void
+		+ linkBlob(blobId: string, response: BlobQueryResponse*): void
+		+ unlinkBlob(blobId: string, response: BlobQueryResponse*): void
+	}
+}
+
+@enduml

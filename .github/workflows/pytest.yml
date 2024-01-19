@@ -1,10 +1,14 @@
 name: PyTest
-on: push
+on:
+  push:
+    branches:
+      - "*"
+      - !"features/doc"
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Check out repository code

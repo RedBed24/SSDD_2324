@@ -26,6 +26,11 @@ DATA = b"I MADE IT! Yayyy :D"
 READ_SIZE = 64
 
 
+class MockUser(IceDrive.User):
+    def __init__(self, value: bool):
+        self.isAlive = lambda: value
+
+
 class MockDataTransfer(IceDrive.DataTransfer):
     def __init__(self, data: bytes):
         self.data = data
@@ -42,25 +47,27 @@ class ClientApp(Ice.Application):
         if len(args) != 2:
             logging.error("Usage: %s <proxy>", args[0])
             return 1
-        
+
         blob_proxy = IceDrive.BlobServicePrx.checkedCast(self.communicator().stringToProxy(args[1]))
 
         if not blob_proxy:
             logging.error("Invalid proxy")
             return 1
-        
+
         adapter = self.communicator().createObjectAdapter("DataTransferAdapter")
         adapter.activate()
 
-        blob_id = blob_proxy.upload(IceDrive.DataTransferPrx.uncheckedCast(adapter.addWithUUID(MockDataTransfer(DATA))))
-        
+        user_prx = IceDrive.UserPrx.uncheckedCast(adapter.addWithUUID(MockUser(True)))
+
+        blob_id = blob_proxy.upload(user_prx, IceDrive.DataTransferPrx.uncheckedCast(adapter.addWithUUID(MockDataTransfer(DATA))))
+
         logging.info("Uploaded blob %s", blob_id)
 
         blob_proxy.link(blob_id)
 
         blob_proxy.unlink(blob_id)
 
-        download_proxy = blob_proxy.download(blob_id)
+        download_proxy = blob_proxy.download(user_prx, blob_id)
 
         dowloaded_data = b""
         while partial_data := download_proxy.read(READ_SIZE):

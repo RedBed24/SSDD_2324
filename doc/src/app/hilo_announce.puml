@@ -1,0 +1,61 @@
+@startuml hilo_announce
+title Bucle de mi Anunciamiento
+
+box mi hilo
+participant my_thread
+participant discovery_proxy
+
+note over my_thread
+	Un hilo que se ha creado en mi servicio
+	Este hilo recibe como parámetros:
+	1. my_authentication_servant
+	2. discovery_proxy
+end note
+
+/ note over discovery_proxy
+	Es un proxy que he obtenido a través del discovery topic:
+	""discovery_proxy = discovery_topic.getPublisher()""
+end note
+end box
+
+participant "my_discovery_servant:\nMyDiscovery" as my_discovery_servant
+participant discovery_topic
+
+box otro servicio
+participant "other_discovery_servant:\nDiscovery" as other_discovery_servant
+end box
+
+loop every 5 seconds
+	my_thread -> discovery_proxy: announceAuthentication(my_authentication_servant)
+	deactivate my_thread
+	activate discovery_proxy
+
+	discovery_proxy -> discovery_topic: announceAuthentication(my_authentication_servant)
+	deactivate discovery_proxy
+	activate discovery_topic
+
+	note over discovery_topic
+		El topic se encarga de enviar el
+		mensaje a todos los suscritos al topic.
+		De esta parte se encarga Ice
+	end note
+
+	note over my_discovery_servant
+		Mi aunciamiento también me llega
+		a mi ya que estoy suscrito al topic
+	end note
+
+	discovery_topic -> my_discovery_servant: announceAuthentication(my_authentication_servant)
+	activate my_discovery_servant
+	my_discovery_servant -> my_discovery_servant: addAuthentication(my_authentication_servant)
+	deactivate my_discovery_servant
+
+	discovery_topic -> other_discovery_servant: announceAuthentication(my_authentication_servant)
+	activate other_discovery_servant
+	other_discovery_servant -> other_discovery_servant: addAuthentication(my_authentication_servant)
+	deactivate other_discovery_servant
+	deactivate discovery_topic
+
+end loop
+
+@enduml

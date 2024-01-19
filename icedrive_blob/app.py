@@ -1,44 +1,77 @@
 """Authentication service application."""
 
-import configparser
 import logging
 import sys
-import os.path
 from typing import List
+import threading
 
 import Ice
+import IceStorm
+import IceDrive
 
 from .blob import BlobService
+from .discovery import Discovery
+from .delayed_response import BlobQuery
 
 
 class BlobApp(Ice.Application):
     """Implementation of the Ice.Application for the Authentication service."""
+    @staticmethod
+    def announce(shutdown: threading.Event, publisher: IceDrive.DiscoveryPrx, blob_prx: IceDrive.BlobServicePrx):
+        while not shutdown.wait(5):
+            publisher.announceBlobService(blob_prx)
+
+    @staticmethod
+    def getTopic(topic_name: str, topic_manager: IceStorm.TopicManagerPrx) -> IceStorm.TopicPrx:
+        try:
+            topic = topic_manager.retrieve(topic_name)
+        except IceStorm.NoSuchTopic:
+            topic = topic_manager.create(topic_name)
+
+        return topic
 
     def run(self, args: List[str]) -> int:
         """Execute the code for the BlobApp class."""
         adapter = self.communicator().createObjectAdapter("BlobAdapter")
         adapter.activate()
 
-        config = configparser.ConfigParser()
+        property = self.communicator().getProperties().getProperty
+        topic_manager = IceStorm.TopicManagerPrx.checkedCast(
+            self.communicator().propertyToProxy("IceStorm.TopicManager.Proxy")
+        )
 
-        # Load the configuration file, default to config/app.ini
-        path = args[1] if len(args) > 1 else os.path.join(os.path.dirname(__file__), "..", "config", "app.ini")
-        configs = config.read(path)
+        discovery_topic = BlobApp.getTopic(property("Discovery.Topic"), topic_manager)
+        blob_query_topic = BlobApp.getTopic(property("Blob.DeferredResolution.Topic"), topic_manager)
 
-        if not len(configs):
-            logging.error("Configuration: %s file not found.", path)
-            return 1
+        discovery_servant = Discovery()
+        discovery_prx = adapter.addWithUUID(discovery_servant)
+        discovery_topic.subscribeAndGetPublisher({}, discovery_prx)
 
-        logging.debug("Configuration: %s file loaded.", path)
+        servant = BlobService(
+            IceDrive.BlobQueryPrx.uncheckedCast(blob_query_topic.getPublisher()),
+            discovery_servant,
+            property("BlobsDirectory"),
+            property("LinksDirectory"),
+            int(property("DataTransferSize")),
+            property("PartialUploadsDirectory")
+        )
 
-        servant = BlobService(config["Blobs"]["blobs_directory"], config["Blobs"]["links_directory"], int(config["Server"]["data_transfer_size"]), config["Blobs"]["partial_uploads_directory"])
-
-        servant_proxy = adapter.addWithUUID(servant) if config["Server"]["random_proxy"] != "false" else adapter.add(servant, self.communicator().stringToIdentity("BlobService"))
+        servant_proxy = adapter.addWithUUID(servant)
 
         logging.info("Proxy: %s", servant_proxy)
 
+        query_servant = BlobQuery(servant)
+        query_prx = adapter.addWithUUID(query_servant)
+        blob_query_topic.subscribeAndGetPublisher({}, query_prx)
+
+        shutdown = threading.Event()
+        publisher = IceDrive.DiscoveryPrx.uncheckedCast(discovery_topic.getPublisher())
+        blob_prx = IceDrive.BlobServicePrx.uncheckedCast(servant_proxy)
+        threading.Thread(target=BlobApp.announce, args=(shutdown, publisher, blob_prx)).start()
+
         self.shutdownOnInterrupt()
         self.communicator().waitForShutdown()
+        shutdown.set()
 
         return 0
 
