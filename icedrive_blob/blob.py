@@ -71,6 +71,9 @@ class BlobService(IceDrive.BlobService):
         with open(os.path.join(self.links_directory, blob_id), "r") as f:
             return int(f.read())
 
+    def __contains__(self, blob_id: str) -> bool:
+        return blob_id in self.blobs
+
     def clean_partial_uploads(self) -> None:
         """Remove all partial uploads. Only needed if the service was closed while uploading."""
         for filename in os.listdir(self.partial_uploads_directory):
