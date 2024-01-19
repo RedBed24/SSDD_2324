@@ -66,7 +66,7 @@ def test_download():
     blob_service, blob_id = setup(True)
 
     # Get the data transfer object
-    blob = blob_service.download(MockUser(True), blob_id) 
+    blob = blob_service.download(MockUser(True), blob_id)
 
     # Check if the blob_id file contains the data
     assert blob.read(1024) == DATA
@@ -86,7 +86,7 @@ def test_download_with_other_blobservice():
 
     # Create another BlobService
     blob_service = BlobService(None, MockDiscovery(MockAuthentication(True)), MOCK_BLOBS_DIRECTORY, MOCK_LINKS_DIRECTORY, 1024, MOCK_PARTIAL_UPLOADS_DIRECTORY)
-    
+
     # Get the data transfer object
     blob = blob_service.download(MockUser(True), blob_id)
     # Check if the blob_id file contains the data

@@ -65,7 +65,7 @@ class BlobService(IceDrive.BlobService):
         self.clean_partial_uploads()
 
         logging.debug("BlobService: cleaned partial uploads")
-    
+
     def read_blob_links(self, blob_id: str) -> int:
         """Read the number of links of a blob_id file."""
         with open(os.path.join(self.links_directory, blob_id), "r") as f:
