@@ -42,7 +42,7 @@ class BlobQuery(IceDrive.BlobQuery):
         if blob_id in self.blob_servant.blobs:
             response.downloadBlob(self.blob_servant.download(None, blob_id))
 
-    def blobIdExists(self, blob_id: str, response: BlobQueryResponse, current: Ice.Current = None) -> None:
+    def blobExists(self, blob_id: str, response: BlobQueryResponse, current: Ice.Current = None) -> None:
         """Receive a query to check if `blob_id` exists."""
         logging.debug("BlobQuery: received blobIdExists query for blob %s", blob_id)
         if blob_id in self.blob_servant.blobs:
