@@ -40,8 +40,8 @@ class BlobApp(Ice.Application):
             self.communicator().propertyToProxy("IceStorm.TopicManager.Proxy")
         )
 
-        discovery_topic = BlobApp.getTopic(property("DiscoveryTopic"), topic_manager)
-        blob_query_topic = BlobApp.getTopic(property("BlobQueryTopic"), topic_manager)
+        discovery_topic = BlobApp.getTopic(property("Discovery.Topic"), topic_manager)
+        blob_query_topic = BlobApp.getTopic(property("Blob.DeferredResolution.Topic"), topic_manager)
 
         discovery_servant = Discovery()
         discovery_prx = adapter.addWithUUID(discovery_servant)
