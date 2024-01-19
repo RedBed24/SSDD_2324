@@ -26,7 +26,8 @@ tests = ["pytest"]
 linters = ["black", "ruff", "pydocstyle"]
 
 [project.urls]
-"Homepage" = "https://github.com/RedBed24/SSDD_2324"
+"Repository" = "https://github.com/RedBed24/SSDD_2324"
+"Homepage" = "https://redbed24.github.io/SSDD_2324"
 
 [project.scripts]
 icedrive-blob = "icedrive_blob.app:main"

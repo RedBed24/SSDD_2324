@@ -1,0 +1,70 @@
+@startuml apuntes_sobre_interfaces
+title Explicación sobre práctica 2
+
+package discovery {
+	package escuchar {
+		class MyDiscovery
+
+		note bottom of MyDiscovery
+			Debes poner este a la escucha
+			Cuando alguien se anuncie
+			te llegará una llamada a tus
+			métodos implementados
+		end note
+	}
+	package anunciarse {
+		interface Discovery
+
+		note bottom of Discovery
+			Para aunciarte, necesitas alguien
+			que te permita hacerlo, que cumpla
+			la interfaz
+		end note
+	}
+}
+
+package ayuda {
+	package ofrecer {
+		class MyAuthenticationQuery
+		interface AuthenticationQueryResponse
+
+		note top of MyAuthenticationQuery
+			Te pones a la escucha
+			Cuando recibes una petición
+			(una llamada a los métodos implementados)
+			Intentas resolverla, en caso de poder resolverla
+		end note
+
+		note bottom of AuthenticationQueryResponse
+			Habrás recibido un objeto de este tipo
+			pues tendrás que hacerle una llamada
+		end note
+	}
+	package recibir {
+		interface AuthenticationQuery
+
+		note top of AuthenticationQuery
+			Pides ayuda a alguien que implemente esto
+			realizas una llamada al método que necesites
+			se le enviará a todos los que estén suscritos
+			con suerte alguien contestará
+		end note
+
+		class MyAuthenticationQueryResponse
+
+		note bottom of MyAuthenticationQueryResponse
+			Antes de pedir ayuda, tienes que poner un
+			objeto de estos a escuchar y es el que envías
+			Si alguien es capaz de resolver tu petición
+			te llegará la respuesta a lo que hayas implementado
+		end note
+	}
+}
+note top of ayuda
+	La "ayuda" es cuando se requiere resolver
+	un método en diferido, cuando se tienen
+	que coordinar los sirvientes de un mismo
+	servicio, no tiene relación con discovery
+end note
+
+@enduml
