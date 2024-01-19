@@ -17,7 +17,7 @@ class Discovery(IceDrive.Discovery):
         self.authentications.add(prx)
         logging.info("Discovery: received authentication service announcement: %s", prx)
 
-    def announceDirectoryServicey(self, prx: IceDrive.DirectoryServicePrx, current: Ice.Current = None) -> None:
+    def announceDirectoryService(self, prx: IceDrive.DirectoryServicePrx, current: Ice.Current = None) -> None:
         """Receive an Directory service announcement."""
         logging.info("Discovery: received directory service announcement: %s", prx)
 

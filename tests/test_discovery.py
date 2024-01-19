@@ -10,7 +10,7 @@ from mocks import MockAuthentication
 
 
 def test_announce_directory():
-	Discovery().announceDirectoryServicey(None)
+	Discovery().announceDirectoryService(None)
 
 
 def test_announce_blob():
