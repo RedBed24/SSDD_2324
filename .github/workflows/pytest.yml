@@ -3,7 +3,8 @@ on:
   push:
     branches:
       - "*"
-      - !"features/doc"
+    branches-ignore:
+      - "features/doc"
 
 jobs:
   test:
